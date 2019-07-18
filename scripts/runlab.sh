@@ -8,7 +8,7 @@ fi
 ###
 # Set up environment
 ###
-source /etc/profile.d/local06-scl.sh
+#source /etc/profile.d/local06-scl.sh
 export PATH="${PATH}:/opt/lsf/curr/amd64_rhel70/bin/"
 export SHELL="/usr/bin/bash"
 

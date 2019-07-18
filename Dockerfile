@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.0-cudnn7-devel-centos7
+FROM rapidsai/rapidsai:0.8-cuda10.0-devel-centos7-gcc7-py3.6
 
 USER root
 RUN   curl -sL https://rpm.nodesource.com/setup_10.x | bash - && \
@@ -7,84 +7,27 @@ RUN   curl -sL https://rpm.nodesource.com/setup_10.x | bash - && \
         && yum -y upgrade
 
 RUN   yum -y install centos-release-scl && \
-      yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-      yum -y install rh-git29 devtoolset-6 devtoolset-7 devtoolset-8 \
-        rh-python36 rh-python36-python-devel rh-python36-python-setuptools-36 rh-python36-python-tkinter rh-python36-PyYAML \
-        git bazel sudo \
-        python-devel http-parser nodejs perl-Digest-MD5 \
-        zlib-devel perl-ExtUtils-MakeMaker gettext \
-        gcc make openssl-devel libffi-devel automake libtool file \
-        graphviz \
-        pandoc \
-        texlive texlive-collection-xetex texlive-ec texlive-upquote texlive-adjustbox \
+      yum -y install \
+        git sudo \
+        nodejs \
         wget jq \
         bzip2 zip unzip lrzip \
         tree \
-        ack screen tmux \
-        vim-enhanced emacs emacs-nox nano pico \
-        man-pages man-db \
-        libarchive-devel \
-        fuse-sshfs \
-        singularity \
-        geos-devel \
-        environment-modules \
+        which \
         && yum clean all
 
-###
-# install mpi
-###
-RUN  yum -y groupinstall "Development Tools" && \
-      yum clean all && \
-      mkdir /tmp/git && cd /tmp/git && \
-      git clone https://github.com/open-mpi/ompi.git && \
-      cd ompi && \
-      git checkout v4.0.0 && \
-      ./autogen.pl && \
-      ./configure --prefix=/usr/local && \
-      make -j 16 && \
-      make install && \
-      /usr/local/bin/mpicc examples/ring_c.c -o /usr/bin/mpi_ring && \
-      rm -rf /tmp/git
-
-###
-# proj for cartopy
-###
-RUN mkdir /tmp/proj4 \
-      && cd /tmp/proj4 \
-      && git clone https://github.com/OSGeo/proj.4.git \
-      && cd /tmp/proj4/proj.4 \
-      && git checkout 4.9.3 \
-      && ./autogen.sh \
-      && ./configure \ 
-      && make -j 16 \
-      && make install \
-      && rm -rf /tmp/proj4
-
-# pip etc
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade pip setuptools==39.1.0 wheel
-
-#        jupyter-server-proxy \
-#        nbdime \
-# base libraries
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
+RUN  pip  --no-cache-dir  install --upgrade \
         virtualenv \
         virtualenvwrapper \
         pipenv \
-        tornado==5.1.1 \
-        jupyterlab \
-        jupyterlab_server \
         jupyterhub \
         jupyterlabutils \
-        jupyter-firefly-extensions \
         ipykernel \
         nbval \
         ipyevents \
         ipywidgets \
         tqdm \
         paramnb \
-        cython \
         gputil \
         psutil \
         gsutil \
@@ -92,32 +35,17 @@ RUN  source scl_source enable rh-python36 && \
         humanize \
         pypandoc \
         jupyterlab-git \
-        jupyterlab_latex \
-        numpydoc \
-        pyct
+        numpydoc 
 
 # data libraries
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
-        numpy==1.14.5 \
-        scipy \
-        pandas \
+RUN  pip  --no-cache-dir  install --upgrade \
         uproot \
         papermill \
-        tbb \
-        icc-rt \
         pyculib \
-        numba \
-        pypandoc \
-        pytraj \
-        mdtraj \
-        pyemma \
-        ProDy \
-        mrcfile
+        pypandoc 
 
 # machine learning libs
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
+RUN  pip  --no-cache-dir  install --upgrade \
         kaggle \
         fastai \
         nltk \
@@ -133,77 +61,36 @@ RUN  source scl_source enable rh-python36 && \
         jupyter-tensorboard \
         keras \
         torch \
-        torchvision \
-        pymc3 \
-        pystan \
-        edward
+        torchvision 
 
-RUN source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
-        torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric  
+#RUN source scl_source enable rh-python36 && \
+#      pip  --no-cache-dir  install --upgrade \
+#        torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric  
         
 # visualisation libs
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
+#RUN  source scl_source enable rh-python36 && \
+RUN   pip  --no-cache-dir  install --upgrade \
         rise \
         graphviz \
-        matplotlib \
         tables \
-        qgrid \
-        ipympl \
         bokeh \
         seaborn \
         bqplot \
         ipyvolume \
-        pyviz \
-        "holoviews[recommended]" \
-        datashader \
-        wordcloud \
-        textblob \
-        nglview \
-        hyperspy[all] \
-        hyperspy_gui_ipywidgets \
         gmaps
 
-# compute and transport
-RUN  source scl_source enable rh-python36 && \
-      pip3  --no-cache-dir  install --upgrade \
-        mkl \
-        mkl-fft \
-        "dask[complete]" \
-        dask-kubernetes \
-        fastparquet \
-        pyarrow \
-        cloudpickle \
-        firefly_client \
-        mpi4py \
-        ipyparallel \
-        horovod \
-        deap \
-        zmq
-      
-#        jupyter_server_proxy \
-#        nbdime \
 RUN  server_extensions="jupyterlab \
-        jupyterlab_latex \
-        jupyterlab_git \
-        ipyparallel" && \
-      source scl_source enable rh-python36 && \
+        jupyterlab_git" && \
       set -e && \
       for s in ${server_extensions}; do \
         echo "Installing ${s}..."; \
         jupyter serverextension enable ${s} --py --sys-prefix; \
       done
       
-#        nbdime \
 RUN  notebook_extensions="widgetsnbextension \
         ipyevents \
         rise \
-        qgrid \
-        nglview \
-        ipyvolume \
-        ipyparallel" && \
-      source scl_source enable rh-python36 && \
+        ipyvolume" && \
       set -e && \
       for n in ${notebook_extensions}; do \
         echo "Installing ${n}..."; \
@@ -222,22 +109,16 @@ RUN  lab_extensions="@jupyterlab/celltags \
         @krassowski/jupyterlab_go_to_definition \
         @jupyter-widgets/jupyterlab-manager \
         @lsst-sqre/jupyterlab-savequit \
-        @pyviz/jupyterlab_pyviz \
         bqplot \
         ipyevents \
         ipyvolume \
-        nglview-js-widgets \
         jupyter-threejs \
         jupyter-matplotlib \
         jupyterlab_bokeh \
-        jupyter_firefly_extensions \
-        @jupyterlab/latex \
-        jupyterlab-drawio \
         @jupyterlab/git \
         @jupyterlab/google-drive \
         jupyterlab_tensorboard \
         @jupyterlab/hub-extension" && \
-      source scl_source enable rh-python36 && \
       set -e && \
       for l in ${lab_extensions}; do \
         echo "Installing ${l}..."; \
@@ -246,12 +127,8 @@ RUN  lab_extensions="@jupyterlab/celltags \
       done
 
 ENV  NODE_OPTIONS=--max-old-space-size=4096
-RUN  source scl_source enable rh-python36 && \
-      jupyter lab clean && \
+RUN jupyter lab clean && \
       jupyter lab build
-
-#RUN curl -L https://github.com/javabean/su-exec/releases/download/v0.2/su-exec.amd64 > /usr/bin/su-exec \
-#    && chmod ugo+x /usr/bin/su-exec
 
 # Custom local files
 COPY profile.d/local03-showmotd.sh \
