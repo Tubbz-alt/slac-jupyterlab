@@ -39,7 +39,7 @@ fi
 ###
 # run the hub
 ###
-cmd="jupyter-labhub \
+cmd="/conda/envs/rapids/bin/jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
      --notebook-dir=${HOME}/notebooks"
